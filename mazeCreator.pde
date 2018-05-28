@@ -1,7 +1,5 @@
-// 5/15/17 creation date
-// 5/19/17 completion
-//
-// maze creator      -    main program
+
+// alien maze creator    -    main program
 //
 // by jack kallas
 
