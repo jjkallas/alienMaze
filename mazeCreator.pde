@@ -13,7 +13,7 @@ Box current;
 
 ArrayDeque<Box> stack; 
 
-int rowSize = 25;
+int rowSize = 16;
 int boxSize; 
 
 boolean mazeCreated;
