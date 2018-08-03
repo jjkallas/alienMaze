@@ -1,5 +1,7 @@
-
-// alien maze creator    -    main program
+// 5/15/17 creation date
+// 5/19/17 completion
+//
+// maze creator      -    main program
 //
 // by jack kallas
 
@@ -11,14 +13,17 @@ Box current;
 
 ArrayDeque<Box> stack; 
 
-int rowSize = 16;
+int rowSize = 25;
 int boxSize; 
 
-boolean over;
+boolean mazeCreated;
 PImage alien;
 
 int popNum = 0;
 float rand;
+
+// answer to math question
+int answer; 
 
 
 void setup()
@@ -27,7 +32,7 @@ void setup()
   size( 600, 600 );
   boxSize = width/rowSize;
 
-  over = false;
+  mazeCreated = false;
   grid = new Box[rowSize][rowSize];
   stack = new ArrayDeque<Box>();
   
@@ -44,11 +49,15 @@ void setup()
 
 // set treasure location
 // grid[rowSize-1, 0 ];
-  grid[(int) random(rowSize)][(int) random(rowSize)].treasure = true;
+  for ( int i = 0; i < 25; i++ ){
+    
+    grid[(int) random(rowSize)][(int) random(rowSize)].treasure = true;
 
+  }    
+  
   current = grid[0][rowSize-1];
   current.selected = true;
-  current.visited = true;
+  current.visited = true;  
 
 }
 
@@ -63,7 +72,6 @@ void draw()
       }   
     }
 
-    
    Box neighbor; 
 
    if ( (neighbor = findNeighbor( current.column, current.row )) != null ) //if found unvisited NEIGHBOR
@@ -109,7 +117,7 @@ void draw()
 
   } 
   else { // if cells all visited
-    over = true;
+    mazeCreated = true;
     //background(0);
     for ( int j = 0; j < rowSize; j++ ){
       for ( int i = 0; i < rowSize; i++ ){
@@ -120,362 +128,57 @@ void draw()
 
 }
 
-// this function is insanity that I realized I could rewrite in a handful of lines.
+// Takes current box's column and row AND returns a suitable box to move toward
+Box findNeighbor( int i, int j ){
+  int rand;
+  boolean leftBound, rightBound, aboveBound, belowBound;    // bounds for edge cases
+  leftBound = rightBound = aboveBound = belowBound = false; // set to false
+  ArrayDeque<Box> neighbors = new ArrayDeque<Box>();
+  
+  // set out of bound sides to true
+  //
+  if ( i + 1 >= rowSize )  rightBound = true;
+  if ( i - 1 < 0 )         leftBound = true; 
+  if ( j + 1 >= rowSize )  belowBound = true;
+  if ( j - 1 < 0 )         aboveBound = true; 
 
-Box findNeighbor( int i, int j  )
-{
-  if ( i == 0 && j == 0 ){        // top left corner case
-    
-    if ( grid[i + 1][ j ].beenVisited() && grid[i][j + 1].beenVisited() )
-    {
-      return null; 
+  //add Boxes to possible neighbors array if they aren't out of bounds and haven't been visited
+  if ( !rightBound ){
+    if ( !grid[ i + 1 ][ j ].beenVisited() ){
+      neighbors.push( grid[ i + 1 ][ j ] );
     }
-    if ( grid[i + 1][j].beenVisited() ){
-      return grid[i][j + 1]; 
-    } 
-    else if ( grid[i][j+1].beenVisited() ){
-      return grid[i + 1][j];  
-    }
-    else if ( random( 1 ) > 0.5 ){
-      return grid[i][j + 1];  
-    }
-    else {
-      return grid[i + 1][j];  
+  }
+  if ( !leftBound ){
+    if ( !grid[ i - 1 ][ j ].beenVisited() ){
+      neighbors.push( grid[ i - 1 ][ j ] );
     }
   }
   
-  else if ( i == rowSize - 1 && j == rowSize - 1 ){   // bottom right corner case
-    
-    if ( grid[i - 1][ j ].beenVisited() && grid[i][j - 1].beenVisited() )
-    {
-      return null; 
+  if ( !belowBound ){
+    if ( !grid[ i ][ j + 1 ].beenVisited() ){
+      neighbors.push( grid[ i ][ j + 1 ] );
     }
-    if ( grid[i - 1][j].beenVisited() ){
-      return grid[i][j - 1]; 
-    } 
-    else if ( grid[i][j - 1].beenVisited() ){
-      return grid[i - 1][j];  
-    }
-    else if ( random( 1 ) > 0.5 ){
-      return grid[i][j - 1];  
-    }
-    else {
-      return grid[i - 1][j];  
-    }
- 
   }
   
-  else if ( i == 0 && j == rowSize - 1 ){   // bottom left corner case
-  
-    if ( grid[i + 1][ j ].beenVisited() && grid[i][j - 1].beenVisited() )
-    {
-      return null; 
+  if ( !aboveBound ){
+    if ( !grid[ i ][ j - 1 ].beenVisited() ){
+      neighbors.push( grid[ i ][ j - 1 ] );
     }
-    if ( grid[i + 1][j].beenVisited() ){
-      return grid[i][j - 1]; 
-    } 
-    else if ( grid[i][j - 1].beenVisited() ){
-      return grid[i + 1][j];  
-    }
-    else if ( random( 1 ) > 0.5 ){
-      return grid[i][j - 1];  
-    }
-    else {
-      return grid[i + 1][j];  
-    }  
-    
   }
   
-  else if ( i == rowSize - 1 && j == 0 ){ //top right corner case
-   
-    if ( grid[i - 1][ j ].beenVisited() && grid[i][j + 1].beenVisited() )
-    {
-      return null; 
-    }
-    if ( grid[i - 1][j].beenVisited() ){
-      return grid[i][j + 1]; 
-    } 
-    else if ( grid[i][j + 1].beenVisited() ){
-      return grid[i - 1][j];  
-    }
-    else if ( random( 1 ) > 0.5 ){
-      return grid[i][j + 1];  
-    }
-    else {
-      return grid[i - 1][j];  
-    }
-    
+  // array is empty -> return null cuz no neighbors
+  if ( neighbors.isEmpty() ){
+    return null;  
   }
   
-  else if ( j == 0 ) {  // TOP ROW CASE
-    //             right                             below                        left
-    if ( grid[i + 1][ j ].beenVisited() && grid[i][j + 1].beenVisited() && grid[i - 1][j].beenVisited() )
-    {
-      return null; 
-    }
-    
-    if ( grid[i + 1][j].beenVisited() && grid[i - 1][j].beenVisited() ){ 
-      return grid[i][j + 1]; // return below if right + left visited
-    } 
-    
-    if ( grid[i + 1][j].beenVisited() && grid[i][j + 1].beenVisited() ){
-      return grid[i - 1][j];  //return left if right + below visited
-    }
-    
-    if ( grid[i - 1][j].beenVisited() && grid[i][j + 1].beenVisited() ){
-      return grid[i + 1][j]; // return right if left + below visited  
-    }
-    
-    if ( grid[i - 1][j].beenVisited() ){ // if left been visited, decide between right + below
-      if ( random( 1 ) > 0.5 ){
-        return grid[i][j + 1];  
-      }
-      else {
-        return grid[i + 1][j];  
-      }      
-    }
-    
-    if ( grid[i + 1][j].beenVisited() ){ // if right been visited, decide between left + below
-      if ( random( 1 ) > 0.5 ){
-        return grid[i][j + 1];  
-      }
-      else {
-        return grid[i - 1][j];  
-      }      
-    }
-    
-    if ( grid[i][j + 1].beenVisited() ){ // if below been visited, decide between left + right
-      if ( random( 1 ) > 0.5 ){
-        return grid[i - 1][j];  
-      }
-      else {
-        return grid[i + 1][j];  
-      }      
-    }
-    
-    else if ( (rand = random( 1 )) > 0.66 ){ // none visited, randomly decide between the 3 neighbors
-      return grid[i - 1][j];
-    }
-    else if ( rand > 0.33 ){
-      return grid[i + 1][j]; 
-    }
-    else {
-      return grid[i][j + 1]; 
-    }
-    
-  } // end TOP ROW case
+  // Pick random neighbor from pool of potential neighbors
+  rand = round( random( 0, neighbors.size() - 1) );
   
-  else if ( i == 0 ){   // LEFT COLUMN case
-    
-    if ( grid[i + 1][ j ].beenVisited() && grid[i][j + 1].beenVisited() && grid[i][j - 1].beenVisited() )
-    {
-      return null; 
-    }
-    
-    if ( grid[i + 1][j].beenVisited() && grid[i][j - 1].beenVisited() ){ 
-      return grid[i][j + 1]; // return below if right + above visited
-    } 
-    
-    if ( grid[i + 1][j].beenVisited() && grid[i][j + 1].beenVisited() ){
-      return grid[i][j - 1];  //return above if right + below visited
-    }
-    
-    if ( grid[i][j - 1].beenVisited() && grid[i][j + 1].beenVisited() ){
-      return grid[i + 1][j]; // return right if above + below visited  
-    }
-    
-    if ( grid[i][j - 1].beenVisited() ){ // if above been visited, decide between right + below
-      if ( random( 1 ) > 0.5 ){
-        return grid[i][j + 1];  
-      }
-      else {
-        return grid[i + 1][j];  
-      }      
-    }
-    
-    if ( grid[i + 1][j].beenVisited() ){ // if right been visited, decide between above + below
-      if ( random( 1 ) > 0.5 ){
-        return grid[i][j + 1];  
-      }
-      else {
-        return grid[i][j - 1];  
-      }      
-    }
-    
-    if ( grid[i][j + 1].beenVisited() ){ // if below been visited, decide between above + right
-      if ( random( 1 ) > 0.5 ){
-        return grid[i][j - 1];  
-      }
-      else {
-        return grid[i + 1][j];  
-      }      
-    }
-    
-    else if ( (rand = random( 1 )) > 0.66 ){ // none visited, randomly decide between the 3 neighbors
-      return grid[i][j - 1];
-    }
-    else if ( rand > 0.33 ){
-      return grid[i + 1][j]; 
-    }
-    else {
-      return grid[i][j + 1]; 
-    }
-    
-  } // end LEFT COLUMN case
+  // convert to array for element access and return it
+  Box[] boxes = neighbors.toArray( new Box[0] );
+  return boxes[rand];
   
-  else if ( j == rowSize - 1 ){ // BOTTOM ROW case
-  
-      if ( grid[i + 1][ j ].beenVisited() && grid[i][j - 1].beenVisited() && grid[i - 1][j].beenVisited() )
-    {
-      return null; 
-    }
-    
-    if ( grid[i + 1][j].beenVisited() && grid[i - 1][j].beenVisited() ){ 
-      return grid[i][j - 1]; // return above if right + left visited
-    } 
-    
-    if ( grid[i + 1][j].beenVisited() && grid[i][j - 1].beenVisited() ){
-      return grid[i - 1][j];  //return left if right + above visited
-    }
-    
-    if ( grid[i - 1][j].beenVisited() && grid[i][j - 1].beenVisited() ){
-      return grid[i + 1][j]; // return right if left + above visited  
-    }
-    
-    if ( grid[i - 1][j].beenVisited() ){ // if left been visited, decide between right + above
-      if ( random( 1 ) > 0.5 ){
-        return grid[i][j - 1];  
-      }
-      else {
-        return grid[i + 1][j];  
-      }      
-    }
-    
-    if ( grid[i + 1][j].beenVisited() ){ // if right been visited, decide between left + above
-      if ( random( 1 ) > 0.5 ){
-        return grid[i][j - 1];  
-      }
-      else {
-        return grid[i - 1][j];  
-      }      
-    }
-    
-    if ( grid[i][j - 1].beenVisited() ){ // if above been visited, decide between left + right
-      if ( random( 1 ) > 0.5 ){
-        return grid[i - 1][j];  
-      }
-      else {
-        return grid[i + 1][j];  
-      }      
-    }
-    
-    else if ( (rand = random( 1 )) > 0.66 ){ // none visited, randomly decide between the 3 neighbors
-      return grid[i - 1][j];
-    }
-    else if ( rand > 0.33 ){
-      return grid[i + 1][j]; 
-    }
-    else {
-      return grid[i][j - 1]; 
-    }
-
-  } // end BOTTOM ROW case
-  
-  else if ( i == rowSize - 1 ){ // RIGHT COLUMN case
-   
-   if ( grid[i][ j - 1 ].beenVisited() && grid[i][j + 1].beenVisited() && grid[i - 1][j].beenVisited() )
-    {
-      return null; 
-    }
-    
-    if ( grid[i][j - 1].beenVisited() && grid[i - 1][j].beenVisited() ){ 
-      return grid[i][j + 1]; // return below if above + left visited
-    } 
-    
-    if ( grid[i][j - 1].beenVisited() && grid[i][j + 1].beenVisited() ){
-      return grid[i - 1][j];  //return left if above + below visited
-    }
-    
-    if ( grid[i - 1][j].beenVisited() && grid[i][j + 1].beenVisited() ){
-      return grid[i][j - 1]; // return above if left + below visited  
-    }
-    
-    if ( grid[i - 1][j].beenVisited() ){ // if left been visited, decide between right + below
-      if ( random( 1 ) > 0.5 ){
-        return grid[i][j + 1];  
-      }
-      else {
-        return grid[i][j - 1];  
-      }      
-    }
-    
-    if ( grid[i][j - 1].beenVisited() ){ // if above been visited, decide between left + below
-      if ( random( 1 ) > 0.5 ){
-        return grid[i][j + 1];  
-      }
-      else {
-        return grid[i - 1][j];  
-      }      
-    }
-    
-    if ( grid[i][j + 1].beenVisited() ){ // if below been visited, decide between left + above
-      if ( random( 1 ) > 0.5 ){
-        return grid[i - 1][j];  
-      }
-      else {
-        return grid[i][j - 1];  
-      }      
-    }
-    
-    else if ( (rand = random( 1 )) > 0.66 ){ // none visited, randomly decide between the 3 neighbors
-      return grid[i - 1][j];
-    }
-    else if ( rand > 0.33 ){
-      return grid[i][j - 1]; 
-    }
-    else {
-      return grid[i][j + 1]; 
-    }
-  
-  } // end RIGHT COLUMN case
-  
-  else { // DEFAULT case
-    
-    int done = 0;
-    Box tester = new Box( 0, 0);
-    
-    if ( grid[i + 1][ j ].beenVisited() && grid[i][j + 1].beenVisited() 
-    && grid[i - 1][j].beenVisited() && grid[i][j - 1].beenVisited() )
-    {
-      return null; 
-    }
-    
-    while ( done == 0 ){
-      
-      if ( (rand = random( 1 )) > 0.75 ){
-        tester = grid[i - 1][j];
-      } else if ( rand > .5 ){
-        tester = grid[i + 1][j];    
-      } else if ( rand > .25 ){
-        tester = grid[i][j - 1];
-      } else {
-        tester = grid[i][j + 1];  
-      }
-      
-      if ( !tester.beenVisited() ){
-        done = 1;
-      }
-    }
-    
-    return tester;
-   
-  } // end DEFAULT case
-  
-}// end findNeighbor() function
-
-
-
-
+}
 
 
 boolean allVisited()
@@ -488,10 +191,11 @@ boolean allVisited()
   return true;
 }
 
+
 void keyPressed()
 {
   int index;
-  if ( over == true ) {
+  if ( mazeCreated == true ) {
     if ( keyCode == UP ){
       index = current.row - 1;
       if ( index >= 0 ){
@@ -550,6 +254,7 @@ void keyPressed()
     }
   }
 }
+
 
 void gameOver(){
   background( 0, 0, 0 );
