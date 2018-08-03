@@ -1,6 +1,3 @@
-// 5/15/17 creation date
-// 5/19/17 completion
-//
 // maze creator      -    main program
 //
 // by jack kallas
@@ -13,7 +10,17 @@ Box current;
 
 ArrayDeque<Box> stack; 
 
+
+//
+// MAZE ROW SIZE VARIABLES  -  Change to increase/decrease maze size 
+//
 int rowSize = 16;
+//
+//   Can also change the size function parameters on line 39
+//
+
+
+
 int boxSize; 
 
 boolean mazeCreated;
