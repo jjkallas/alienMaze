@@ -1,7 +1,8 @@
-# Galactic maze creating... with brain problems.
+# A galactic maze creator... with brain problems.
 ![alt text](/spaceMonster.png)
 
 A program written in the Processing Language that generates playable mazes filled with aliens curious about math!
+
 by Jack Kallas
 
 
