@@ -2,9 +2,8 @@
 ![alt text](/spaceMonster.png)
 By Jack Kallas
 
-A program written in the Processing Language that generates playable mazes filled with aliens curious about math!
+A program that generates playable mazes filled with aliens curious about math! Written in the Processing language.
+
 
 FOR BIGGER OR SMALLER MAZE:
  change the global rowSize variable or size() parameters in the setup function on line 39.
-
-note: chest image is not used currently.
