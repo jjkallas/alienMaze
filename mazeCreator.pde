@@ -1,50 +1,69 @@
 // maze creator      -    main program
-//
-// by jack kallas
+// alien math game
+// by Jack Kallas
 
 import java.util.ArrayDeque;
 
 Box[][] grid;
-
 Box current;
 
 ArrayDeque<Box> stack; 
 
-
 //
 // MAZE ROW SIZE VARIABLES  -  Change to increase/decrease maze size 
 //
-int rowSize = 16;
+int rowSize = 15;
+int numAliens = 25;
 //
-//   Can also change the size function parameters on line 39
+//   Can also change the size function parameters on line 44 / at beginning of setup()
 //
-
-
 
 int boxSize; 
 
 boolean mazeCreated;
+boolean quizActive;
+boolean gameWon;
+
+//Images used
+PImage chest;
 PImage alien;
+PImage bigAlien;
 
 int popNum = 0;
-float rand;
+float rand; 
 
-// answer to math question
-int answer; 
-
+int numGuess = 0;
+MultQ quiz;          // quiz object
+String pGuess;         // player's guess
+int numCorrect;
+int numWrong;
 
 void setup()
 {
   frameRate( 300 );
-  size( 600, 600 );
+  size( 700, 700 );
+  
   boxSize = width/rowSize;
 
   mazeCreated = false;
+  quizActive = false;
+  gameWon = false;
+  
+  pGuess = "";       //  initialize player's guess
+  numCorrect = 0;
+  numWrong = 0;
+  
   grid = new Box[rowSize][rowSize];
   stack = new ArrayDeque<Box>();
   
-  alien = loadImage( "C:\\Users\\Jack\\workspace\\SpaceGame\\spaceMonster.png" );
+  chest = loadImage( "C:\\Users\\Student\\Pictures\\chest.png" );
+  chest.resize( width/rowSize, width/rowSize );
+  
+  alien = loadImage( "C:\\Users\\Student\\Pictures\\spaceMonster.png" );
+  bigAlien = loadImage( "C:\\Users\\Student\\Pictures\\spaceMonster.png" );
+  bigAlien.resize( 300, 300 );
   alien.resize( width/rowSize, width/rowSize );
+  
   
   for ( int j = 0; j < rowSize; j++ ){
     for ( int i = 0; i < rowSize; i++ ){
@@ -53,14 +72,15 @@ void setup()
       grid[i][j].row = j;
     }    
   }
-
-// set treasure location
-// grid[rowSize-1, 0 ];
-  for ( int i = 0; i < 25; i++ ){
-    
-    grid[(int) random(rowSize)][(int) random(rowSize)].treasure = true;
-
+  
+  // selects positions for aliens ( within 0 to rowSize-1 )
+  for ( int i = 0; i < numAliens; i++ ){
+    grid[ (int) random(rowSize) ][ (int) random(rowSize) ].monster = true; 
   }    
+  
+  // set treasure location to top right corner
+  grid[rowSize - 1][0].treasure = true;
+  grid[rowSize - 1][0].monster = false;
   
   current = grid[0][rowSize-1];
   current.selected = true;
@@ -70,9 +90,9 @@ void setup()
 
 void draw()
 { 
-  if ( !allVisited() ) { 
-
-    //background(0);
+  if ( !allVisited() ) { //Maze being generated i.e. not all boxes visited yet
+  
+    background(0);
     for ( int j = 0; j < rowSize; j++ ){
       for ( int i = 0; i < rowSize; i++ ){
         grid[i][j].display();
@@ -123,13 +143,57 @@ void draw()
     }
 
   } 
-  else { // if cells all visited
-    mazeCreated = true;
-    //background(0);
-    for ( int j = 0; j < rowSize; j++ ){
-      for ( int i = 0; i < rowSize; i++ ){
-        grid[i][j].display();
-      }   
+  else { // Maze generated. Game active.
+    if ( mazeCreated == false ) { // game is just beginning
+      mazeCreated = true;
+      current.selected = false;
+      current = grid[0][rowSize - 1];
+      current.selected = true;
+    }
+    if ( gameWon ) {    // game won, treasure found
+      background( 0 );
+      fill( 255, 50, 0 );
+      if ( numWrong == 0 ){
+        text( "WOW! Perfect score.", width/3, height/4 );
+      } else {
+        text( "Even Newton and Einstein made mistakes. Nice job!", 50, height/4 );
+      }
+      
+      text( "You are the winner!", width/4, height/5 );
+      text( "Number correct: " + numCorrect, width/4, height/2 );
+      text( "Number incorrect: " + numWrong, width/4, height/2 + 25 );
+      
+      fill( 200, 20, 0 );
+      text( "Press ENTER to play again.", width / 5, height /2 + 75 );
+      
+    }
+    if ( quizActive == true ) {
+      background( 0, 0, 0 );
+      
+      fill( 20, 150, 20 );
+      textSize( 18 );
+      text( "Correct answers: " + numCorrect, width/4 + 70, 25);
+      
+      fill( 200, 50, 0 );
+      textSize( 18 );
+      text( "Chances before disintegration: " + numGuess, width/4, 50 ); 
+      
+      image( bigAlien, width/2 - 160, height/4 - 50 );
+      
+      textSize( 25 );
+      fill( 55, 20, 200 );
+      text( "Ouchie says, \"My friend! What is " + quiz.expr + "?!\"", 65, height/1.2 - 50 );
+      
+      fill( 5, 150, 50 );
+      text( "You say: \"  " + pGuess + "  \"", 65, height/1.2 + 25 );   
+    }
+    if ( !quizActive && !gameWon ){ // regular maze mode
+      background( 0 );
+      for ( int j = 0; j < rowSize; j++ ){
+        for ( int i = 0; i < rowSize; i++ ){
+          grid[i][j].display();
+        }   
+      }
     }
   }
 
@@ -178,13 +242,12 @@ Box findNeighbor( int i, int j ){
     return null;  
   }
   
-  // Pick random neighbor from pool of potential neighbors
-  rand = round( random( 0, neighbors.size() - 1) );
-  
-  // convert to array for element access and return it
+  // convert ArrayDequeue to array for element access
   Box[] boxes = neighbors.toArray( new Box[0] );
-  return boxes[rand];
   
+  // Pick random neighbor from pool of potential neighbors and then return it
+  rand = round( random( 0, neighbors.size() - 1) );
+  return boxes[rand];
 }
 
 
@@ -202,7 +265,7 @@ boolean allVisited()
 void keyPressed()
 {
   int index;
-  if ( mazeCreated == true ) {
+  if ( mazeCreated == true && quizActive == false && gameWon == false ) {
     if ( keyCode == UP ){
       index = current.row - 1;
       if ( index >= 0 ){
@@ -211,7 +274,10 @@ void keyPressed()
           current = grid[current.column][current.row - 1];
           current.selected = true;
           if ( current.treasure == true ){
-            gameOver();
+            gameWon = true; 
+          }
+          if ( current.monster == true ){
+            startQuiz();
           }
         }
       }
@@ -223,9 +289,11 @@ void keyPressed()
           current.selected = false;
           current = grid[current.column][current.row + 1];
           current.selected = true;  
-          
           if ( current.treasure == true ){
-            gameOver();
+            gameWon = true; 
+          }
+          if ( current.monster == true ){
+            startQuiz();
           }
         }
       }
@@ -238,9 +306,11 @@ void keyPressed()
           current.selected = false;
           current = grid[current.column - 1][current.row];
           current.selected = true;  
-          
           if ( current.treasure == true ){
-            gameOver();
+            gameWon = true; 
+          }
+          if ( current.monster == true ){
+            startQuiz();
           }
         }
       }
@@ -253,20 +323,52 @@ void keyPressed()
           current = grid[current.column + 1][current.row];
           current.selected = true;  
           if ( current.treasure == true ){
-            gameOver();
+            gameWon = true; 
           }
-          
+          if ( current.monster == true ){
+            startQuiz();
+          }
         }
       }
+    }
+  } else if ( quizActive ) {
+    if ( keyCode == ENTER ){
+      if ( quiz.checkAnswer( parseInt( pGuess ) ) == true ){ // user's answer was correct
+        numCorrect++;
+        endQuiz();
+      }
+      else {                                                 // user's answer was incorrect
+        numGuess--;
+        if ( numGuess == 0 ){
+          numWrong++;
+          endQuiz();
+        }
+      }
+    }
+    else if ( keyCode == BACKSPACE && pGuess.length() > 0 ){
+      pGuess = pGuess.substring( 0, pGuess.length() - 1 );
+    }
+    else {
+      pGuess = pGuess + key;
+    }  
+  }
+  if ( gameWon ) {
+    if ( keyCode == ENTER ) {  // User wants to play again -> rerun program
+      setup();
     }
   }
 }
 
+// Create multiplication problem and set number of guesses to 2
+void startQuiz(){
+  MultQ q = new MultQ(); // creates new multiplication problem
+  quizActive = true; 
+  numGuess = 2; 
+  pGuess = "";
+  quiz = q; 
+}
 
-void gameOver(){
-  background( 0, 0, 0 );
-  textSize( 25 );
-  fill( 55, 20, 200 );
-  text( "Ouchie says, \"YOU LOSE! GOOD DAY, SIR!\"", 65, height/2 );
-  noLoop();
+void endQuiz(){
+  quizActive = false;
+  current.monster = false;
 }
