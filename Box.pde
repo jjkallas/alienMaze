@@ -17,8 +17,9 @@ class Box
   int column;
   int row;
 
+  boolean monster;
   boolean treasure;
- 
+  
   boolean selected;
   boolean visited;
   
@@ -29,6 +30,7 @@ class Box
     top = bottom = left = right = true;
     selected = false;
     visited = false;
+    monster = false;
     treasure = false;
   }
   
@@ -50,9 +52,9 @@ class Box
     rect( loc.x, loc.y, boxSize, boxSize );
     
     if ( treasure ){
-      
+      image( chest, loc.x, loc.y );
+    } else if ( monster ){
       image( alien, loc.x, loc.y );
-    
     }
     
     stroke( 0 ); 
