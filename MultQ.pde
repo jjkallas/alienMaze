@@ -1,7 +1,7 @@
 // jjkallas
 
 // MultQ class
-
+// data structure to hold multiplication expression && answer
 
 class MultQ {
   String expr; 
