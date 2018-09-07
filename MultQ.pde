@@ -1,5 +1,4 @@
-// jjkallas
-
+// Jack Kallas
 // MultQ class
 // data structure to hold multiplication expression && answer
 
