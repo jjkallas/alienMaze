@@ -5,4 +5,4 @@ A program that creates playable mazes filled with aliens curious about math! Cre
 
 
 # FOR BIGGER OR SMALLER MAZE:
- change the global rowSize variable or size() parameters in the setup function on line 39.
+ change the global rowSize variable or size() parameters in the setup function on line 44.
