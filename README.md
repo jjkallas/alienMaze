@@ -1,7 +1,7 @@
 # The galactic maze creator... with brain problems.
 ![alt text](/spaceMonster.png)
 
-A program that generates playable mazes filled with aliens curious about math! Created in the Processing language by Jack Kallas.
+A program that creates playable mazes filled with aliens curious about math! Created in the Processing language by Jack Kallas.
 
 
 # FOR BIGGER OR SMALLER MAZE:
