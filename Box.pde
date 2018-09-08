@@ -1,8 +1,8 @@
+// Jack Kallas
 //
-// box class
+// Box class
 //
-// grid will be composed of boxes
-//
+// Grid will be composed of an array of boxes
 // maze will be cut out of the grid
 
 class Box
