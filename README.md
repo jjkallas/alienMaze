@@ -10,5 +10,7 @@ A program that creates playable mazes before your eyes, filled with aliens curio
 ### For BIGGER or SMALLER maze:
 
  Change the global rowSize variable on line 15 of mazeCreator.pde
+ 
  or 
+ 
  Change size() parameters in the setup function on line 44 of mazeCreator.pde
